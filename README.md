@@ -2,6 +2,16 @@
 
 List and disable wake-from-sleep sources on Linux (ACPI, USB, PCI) by readable device name, with persistence across reboots.
 
+I created a bash script to interactively enable/disable devices from waking the PC during sleep. (disclaimer: entirely written via Claude LLM). It supports ACPI, USB, and PCI devices, so that includes things like keyboard & mouse and opening/closing the laptop lid.
+
+When you run `wakectl` you'll see a list of devices, whether waking the computer is enabled for each device, the device name (in somewhat human-readable form), and the device ID. Then you just enter the device number you want to toggle and it the script handles enabling/disabling for you (and the setting is permanent; it persists across reboots).
+
+How it works: it creates udev rules to persist changes (for USB/PCI devices). Since udev can’t set ACPI wake sources, the script writes /etc/systemd/system/wakectl-acpi.service, which disables each selected source at boot. Saving with no ACPI entries removes the unit. The Saved column and the reload-on-start logic cover both mechanisms.
+
+Tip: For devices that appear in both ACPI and PCI/USB sections (e.g. XHC and the xHCI controller), disabling one does not necessarily stop the other from waking the machine. If something still wakes it, disable both.
+
+## More info
+
 `/proc/acpi/wakeup` shows entries like `XHC`, `GLAN`, `LID`. `wakectl` resolves them to names like "Laptop lid (opening it wakes the machine)" or the `lspci`/USB product string, lets you toggle them by number, and saves your choices so they survive a reboot.
 
 ```
@@ -14,12 +24,16 @@ List and disable wake-from-sleep sources on Linux (ACPI, USB, PCI) by readable d
 
 ## Install
 
+1. download the script (wakectl.sh)
+2. run it directly if you want (make it executable first) (e.g. `chmod u+x wakectl.sh; ./wakectl.sh`)
+3. or, make it available system-wide with `sudo install -m 755 wakectl.sh /usr/local/bin/wakectl` which copies the script into your `/usr/local/bin/` directory. Then run it from any terminal by typing `wakectl`.
+
+You might also need to do this:
 ```bash
 sudo apt install pciutils usbutils    # lspci / lsusb for readable names
-sudo install -m 755 wakectl /usr/local/bin/wakectl
 ```
 
-Requires bash 4+. Tested on Ubuntu; should work on any systemd-based distro.
+Tested on Ubuntu; should work on any systemd-based distro.
 
 ## Usage
 
