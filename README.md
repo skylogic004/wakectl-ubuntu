@@ -80,3 +80,7 @@ To undo everything: delete `/etc/udev/rules.d/90-disable-wake.rules`, and run `s
 journalctl -b -1 | grep -i wake
 cat /sys/power/pm_wakeup_irq     # after resume
 ```
+
+# Thanks
+
+Inspired by https://github.com/bvobart/usb-wakeup-control and https://askubuntu.com/questions/1328823/disable-specific-device-from-waking-up-the-system/
